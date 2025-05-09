@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Birthday Slideshow</title>
+
+  <!-- Splide CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" />
+
+  <!-- ───────────────  YOUR STYLES  ─────────────── -->
+  <style>
+  /* ----------  LAYOUT  ---------- */
+  #slider                                      { height: 100vh; }
+  #slider .splide__track,
+  #slider .splide__list,
+  #slider .splide__slide                       { height: 100%; }
+
+  #slider .splide__slide {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+  }
+
+  /* ----------  PHOTO SLIDES  ---------- */
+  .photo-wrap            { position:relative; display:inline-block; }
+  .photo-wrap img        { max-width:100%; max-height:100vh; object-fit:contain; background:#000; }
+
+  .photo-wrap .slide-caption {
+    position:absolute;
+    bottom:2%;
+    left:50%;
+  transform:translateX(-50%);
+    width:95%;                          
+    text-align:center;
+    background:rgba(0,0,0,.55);
+    padding:.2 0.5em;
+    border-radius:.5em;
+    box-sizing:border-box;
+  }
+
+  /* ----------  BASE CAPTION TYPOGRAPHY  ---------- */
+  .slide-caption {
+    font:700 1rem/1.25 system-ui, sans-serif;  /* size overwritten by classes */
+    color:#fff;
+    text-shadow:0 0 8px rgba(0,0,0,.8);
+  }
+  /* dynamic sizes */
+  .caption-lg { font-size:clamp(1.1rem,3vw,1.7rem); }
+  .caption-md { font-size:clamp(1rem,2.5vw,1.6rem); }
+  .caption-sm { font-size:clamp(.9rem,2vw,1.5rem); }
+
+  .slide-caption p     { margin:0 0 .05em; }
+  .slide-caption .from { font-size:.65em; opacity:.8; }
+
+.photo-wrap video{
+  max-width:100%;
+  max-height:100vh;
+  object-fit:contain;      /* letter-box / pillar-box if needed   */
+  background:#000;
+}
+  /* ----------  TEXT-ONLY SLIDES  ---------- */
+  .text-only {
+    display:flex; justify-content:center; align-items:center;
+    background:linear-gradient(135deg,#ffecd2 0%,#fcb69f 100%);
+    border-radius:16px;
+    overflow:hidden;
+    margin:4vh 4vw;
+    box-shadow:0 6px 18px rgba(0,0,0,.15);
+  }
+  .text-only .slide-caption {
+    position:static;
+    max-width:80%;
+    padding:.5rem 1rem;
+    background:rgba(255,255,255,.65);
+    backdrop-filter:blur(4px);
+    border-radius:12px;
+    box-shadow:0 2px 12px rgba(0,0,0,.12);
+    color:#333;
+  }
+  .text-only .slide-caption .from { color:#333; opacity:.7; }
+  </style>
+</head>
+
+<body>
+
+  <!-- ①  Carousel markup -->
+  <div id="slider" class="splide">
+    <div class="splide__track">
+      <ul id="slides" class="splide__list"></ul>
+    </div>
+  </div>
+
+  <!-- ②  Splide JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+
+  <!-- ③  Slideshow logic -->
+  <script>
+  /* === configuration === */
+  const DATA_URL = 'https://script.google.com/macros/s/AKfycbxkPtG0gZriP0YgKwkhNeLVTEqfwcb5cwr65ioTXEP4ZZUKrUAQm5aiM4QrCGXhvtEAMg/exec';
+  const POLL_MS  = 8000;  
+
+  const slideHTML = ({ msg, from, url }) => {
+    const len  = (msg || '').length;
+    const size =  len > 240 ? 'caption-sm'
+               :  len > 140 ? 'caption-md'
+               :              'caption-lg';
+
+    /* ------------------  PHOTO or VIDEO slide  ------------------ */
+    if (url && url.trim().length) {
+      return `
+        <li class="splide__slide">
+          <div class="photo-wrap">
+            <img src="${url}"/>            
+            <div class="slide-caption ${size}">
+              <p>${msg || ''}</p>
+              ${from ? `<span class="from">— ${from}</span>` : ''}
+            </div>
+          </div>
+        </li>`;
+    }
+
+  /* ------------------  TEXT-ONLY slide  ------------------ */
+  return `
+    <li class="splide__slide text-only">
+      <div class="slide-caption ${size}">
+        <p>${msg || ''}</p>
+        ${from ? `<span class="from">— ${from}</span>` : ''}
+      </div>
+    </li>`;
+};
+
+
+  /* === Splide init === */
+  
+
+  /* === Poll for new rows === */
+  let slider;            // will hold the Splide instance
+  let knownCount = 0;    // rows already shown
+
+
+/* 1️⃣  INITIAL LOAD – fill <ul>, then mount Splide */
+(async () => {
+  const res   = await fetch(DATA_URL);
+  const items = await res.json();
+
+  const ul = document.getElementById('slides');
+  items.forEach(item => ul.insertAdjacentHTML('beforeend', slideHTML(item)));
+  knownCount = items.length;          // remember how many rows we have
+
+  /* now that slides exist, create the carousel – autoplay starts immediately */
+  slider = new Splide('#slider', {
+    type:'loop',
+    autoplay:true,
+    interval:5000,
+    pauseOnFocus:false,
+    pauseOnHover:false,
+    arrows:true,
+    pagination:false,
+    keyboard:true
+  }).mount();
+
+  /* start polling for new submissions AFTER Splide exists */
+  setInterval(fetchAndUpdate, POLL_MS);
+})();
+
+  /* 2️⃣  POLL – add only the fresh rows to the live slider */
+  async function fetchAndUpdate(){
+    try{
+      const res   = await fetch(DATA_URL + '&v=' + Date.now()); // cache-buster
+      const items = await res.json();
+
+      if(items.length > knownCount){
+        items.slice(knownCount).forEach(item => slider.add(slideHTML(item)));
+        knownCount = items.length;
+      }
+    }catch(err){
+      console.error('Fetch failed:', err);
+    }
+  }
+
+  </script>
+</body>
+</html>
