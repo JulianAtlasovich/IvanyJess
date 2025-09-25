@@ -169,7 +169,7 @@
 
   /* 2️⃣  POLL – add only the fresh rows to the live slider */
   async function fetchAndUpdate(){
-    try{
+    /*try{
       const res   = await fetch(DATA_URL);// + '&v=' + Date.now()); // cache-buster
       const items = await res.json();
 
@@ -179,7 +179,8 @@
       }
     }catch(err){
       console.error('Fetch failed:', err);
-    }
+    }*/
+    location.reload();
   }
 
   </script>
