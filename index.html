@@ -125,6 +125,10 @@
     const size =  len > 240 ? 'caption-sm'
                :  len > 140 ? 'caption-md'
                :              'caption-lg';
+    
+    // Process message to convert /n to line breaks
+    const processedMsg = (msg || '').replace(/\n/g, '<br>');
+    
      /* ------------------  PHOTO only slide  ------------------ */
     if (url && url.trim().length && len < 2) {
       return `
@@ -142,7 +146,7 @@
           <div class="photo-wrap">
             <img src="${url}"/>            
             <div class="slide-caption ${size}">
-              <p>${msg || ''}</p>
+              <p>${processedMsg}</p>
               ${from ? `<span class="from"> -${from}</span>` : ''}
             </div>
           </div>
@@ -153,7 +157,7 @@
   return `
     <li class="splide__slide text-only">
       <div class="slide-caption ${size}">
-        <p>${msg || ''}</p>
+        <p>${processedMsg}</p>
         ${from ? `<span class="from"> -${from}</span>` : ''}
       </div>
     </li>`;
@@ -186,8 +190,8 @@
     type:'loop',
     autoplay:true,
     interval:8000,
-    pauseOnFocus:true, //for testing purposes
-    pauseOnHover:true,
+    pauseOnFocus:false, //for testing purposes
+    pauseOnHover:false,
     arrows:true,
     pagination:false,
     keyboard:true,
