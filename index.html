@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Birthday Slideshow</title>
+  <title>Ivan y Jess</title>
 
   <!-- Splide CSS -->
   <link rel="stylesheet"
@@ -11,10 +11,10 @@
   <!-- ───────────────  YOUR STYLES  ─────────────── -->
   <style>
   /* ----------  LAYOUT  ---------- */
-  #slider                                      { height: 100vh; }
+  #slider                                      { height: 90vh; }
   #slider .splide__track,
   #slider .splide__list,
-  #slider .splide__slide                       { height: 100%; }
+  #slider .splide__slide                       { height: 95%; }
 
   #slider .splide__slide {
     display:flex;
@@ -24,7 +24,7 @@
 
   /* ----------  PHOTO SLIDES  ---------- */
   .photo-wrap            { position:relative; display:inline-block; }
-  .photo-wrap img        { max-width:100%; max-height:100vh; object-fit:contain; background:#000; }
+  .photo-wrap img        { max-width:100%; max-height:95vh; object-fit:contain; background:#000; }
 
   .photo-wrap .slide-caption {
     position:absolute;
@@ -43,7 +43,7 @@
   .slide-caption {
     font:700 1rem/1.25 system-ui, sans-serif;  /* size overwritten by classes */
     color:#fff;
-    text-shadow:0 0 8px rgba(0,0,0,.8);
+   
   }
   /* dynamic sizes */
   .caption-lg { font-size:clamp(1.1rem,3vw,1.7rem); }
@@ -51,7 +51,7 @@
   .caption-sm { font-size:clamp(.9rem,2vw,1.5rem); }
 
   .slide-caption p     { margin:0 0 .05em; }
-  .slide-caption .from { font-size:.65em; opacity:.8; }
+  .slide-caption .from { font-size:1em; opacity:.8; text-align: right;}
 
 .photo-wrap video{
   max-width:100%;
@@ -65,25 +65,44 @@
     background:linear-gradient(135deg,#ffecd2 0%,#fcb69f 100%);
     border-radius:16px;
     overflow:hidden;
-    margin:4vh 4vw;
-    box-shadow:0 6px 18px rgba(0,0,0,.15);
+    text-align:center;
+    
   }
   .text-only .slide-caption {
     position:static;
     max-width:80%;
     padding:.5rem 1rem;
     background:rgba(255,255,255,.65);
-    backdrop-filter:blur(4px);
     border-radius:12px;
-    box-shadow:0 2px 12px rgba(0,0,0,.12);
-    color:#333;
+    color:#000;
   }
   .text-only .slide-caption .from { color:#333; opacity:.7; }
+
+  #info-box-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .info-box {
+  background-color: #e0f2f7; /* Light blue background */
+  border: 1px solid #a7d9eb; /* Blue border */
+  padding: 12px;
+  margin-bottom: 5px;
+  margin-top: 0px;
+  border-radius: 5px; /* Rounded corners */
+  font-family: Arial, sans-serif;
+  color: #333;
+  font-size: 12px;
+  text-align: center;
+  width: 480px;
+}
   </style>
 </head>
 
 <body>
-
+  <div id=info-box-container>
+  <p class="info-box">Escanea el QR en la mesas para que aparezca en la TV tu mensaje para Ivan y Jess!</p>
+  </div>
   <!-- ①  Carousel markup -->
   <div id="slider" class="splide">
     <div class="splide__track">
@@ -106,6 +125,15 @@
     const size =  len > 240 ? 'caption-sm'
                :  len > 140 ? 'caption-md'
                :              'caption-lg';
+     /* ------------------  PHOTO only slide  ------------------ */
+    if (url && url.trim().length && len < 2) {
+      return `
+        <li class="splide__slide">
+          <div class="photo-wrap">
+            <img src="${url}"/>                        
+          </div>
+        </li>`;
+    }
 
     /* ------------------  PHOTO or VIDEO slide  ------------------ */
     if (url && url.trim().length) {
@@ -115,7 +143,7 @@
             <img src="${url}"/>            
             <div class="slide-caption ${size}">
               <p>${msg || ''}</p>
-              ${from ? `<span class="from">— ${from}</span>` : ''}
+              ${from ? `<span class="from"> -${from}</span>` : ''}
             </div>
           </div>
         </li>`;
@@ -126,7 +154,7 @@
     <li class="splide__slide text-only">
       <div class="slide-caption ${size}">
         <p>${msg || ''}</p>
-        ${from ? `<span class="from">— ${from}</span>` : ''}
+        ${from ? `<span class="from"> -${from}</span>` : ''}
       </div>
     </li>`;
 };
@@ -157,12 +185,12 @@
   slider = new Splide('#slider', {
     type:'loop',
     autoplay:true,
-    interval:5000,
-    pauseOnFocus:false,
-    pauseOnHover:false,
+    interval:8000,
+    pauseOnFocus:true, //for testing purposes
+    pauseOnHover:true,
     arrows:true,
     pagination:false,
-    keyboard:true
+    keyboard:true,
   }).mount();
 
   /* start polling for new submissions AFTER Splide exists */
